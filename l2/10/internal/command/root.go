@@ -15,6 +15,8 @@ func initSortCmd() *cobra.Command {
 	cmd.Flags().BoolP("numeric", "n", false, "numeric sort")
 	cmd.Flags().BoolP("reverse", "r", false, "reverse sort")
 	cmd.Flags().BoolP("unique", "u", false, "unique sort")
+	cmd.Flags().StringP("input", "f", "", "input file (defaults to stdin)")
+	cmd.Flags().StringP("output", "o", "", "output file (optional)")
 
 	return cmd
 }

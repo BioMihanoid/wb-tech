@@ -22,6 +22,8 @@ func TestBaseSort(t *testing.T) {
 				false,
 				false,
 				false,
+				"",
+				"",
 			},
 		},
 		{
@@ -33,6 +35,8 @@ func TestBaseSort(t *testing.T) {
 				false,
 				true,
 				false,
+				"",
+				"",
 			},
 		},
 		{
@@ -44,6 +48,8 @@ func TestBaseSort(t *testing.T) {
 				false,
 				false,
 				true,
+				"",
+				"",
 			},
 		},
 		{
@@ -55,6 +61,8 @@ func TestBaseSort(t *testing.T) {
 				true,
 				false,
 				false,
+				"",
+				"",
 			},
 		},
 		{
@@ -66,6 +74,8 @@ func TestBaseSort(t *testing.T) {
 				false,
 				false,
 				false,
+				"",
+				"",
 			},
 		},
 		{
@@ -77,6 +87,8 @@ func TestBaseSort(t *testing.T) {
 				true,
 				true,
 				true,
+				"",
+				"",
 			},
 		},
 	}

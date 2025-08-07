@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Структура flag нужна для отметки какие флажки были введены пользователем.
 type flag struct {
 	Column         int
 	Numeric        bool
@@ -25,6 +26,7 @@ type flag struct {
 	HumanNumeric   bool
 }
 
+// sortCmd - функция, которую использует кобра при вызове команды sort.
 func sortCmd(cmd *cobra.Command, args []string) {
 	f := &flag{}
 
@@ -68,6 +70,7 @@ func sortCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
+// sortLines - основная функция сортировки введенных/полученных строк.
 func sortLines(lines []string, f *flag) []string {
 	res := make([]string, len(lines))
 	copy(res, lines)
@@ -112,6 +115,8 @@ func sortLines(lines []string, f *flag) []string {
 	return res
 }
 
+// sortColumnNumeric - вспомогательная функция для сортировки, в случае если пользователь ввел флаг колонки сортировки
+// и/или сортировки по цифрам.
 func sortColumnNumeric(lines []string, column int, numeric bool) []string {
 	res := make([]string, len(lines))
 	copy(res, lines)
@@ -152,6 +157,7 @@ func sortColumnNumeric(lines []string, column int, numeric bool) []string {
 	return res
 }
 
+// removeDuplicates - вспомогательная функция для сортировки, в случае если пользовал ввел флаг удаления дубликатов.
 func removeDuplicates(lines []string) []string {
 	m := make(map[string]struct{})
 	res := make([]string, 0, len(lines))
@@ -166,6 +172,7 @@ func removeDuplicates(lines []string) []string {
 	return res
 }
 
+// isSorted - вспомогательная функция, проверяющая отсортированы ли строки.
 func isSorted(lines []string) bool {
 	res := make([]string, len(lines))
 	copy(res, lines)
@@ -181,6 +188,7 @@ func isSorted(lines []string) bool {
 	return true
 }
 
+// sortMonth - вспомогательная функция для сортировки, в случае если пользователь ввел флаг сортировки по месяцам.
 func sortMonth(lines []string) []string {
 	res := make([]string, len(lines))
 	copy(res, lines)
@@ -210,6 +218,8 @@ func sortMonth(lines []string) []string {
 	return res
 }
 
+// parseHumanSize - вспомогательная функция для сортировки, в случае если пользователь ввел флаг сортировки
+// по числовому значению с учетом суффиксов.
 func parseHumanSize(s string) float64 {
 	var suffixMultipliers = map[string]float64{
 		"":  1,

@@ -1,3 +1,4 @@
+// Package command - пакет содержащий команды для выполнения в cli.
 package command
 
 import (
@@ -7,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// initSortCmd - функция инициализирующая команду sort со всеми нужными параметрами.
 func initSortCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sort",
@@ -29,6 +31,7 @@ func initSortCmd() *cobra.Command {
 	return cmd
 }
 
+// initExit - функция инициализирующая команду exit.
 func initExit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "exit",
@@ -42,6 +45,7 @@ func initExit() *cobra.Command {
 	return cmd
 }
 
+// InitCmd - инициализация всех команд.
 func InitCmd() *cobra.Command {
 	rootCmd := &cobra.Command{}
 

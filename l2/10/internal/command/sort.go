@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,15 +12,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Структура flag нужна для отметки какие флажки были введены пользователем.
 type flag struct {
-	Column     int
-	Numeric    bool
-	Reverse    bool
-	Unique     bool
-	InputPath  string
-	OutputPath string
+	Column         int
+	Numeric        bool
+	Reverse        bool
+	Unique         bool
+	InputPath      string
+	OutputPath     string
+	Month          bool
+	IgnoreTrailing bool
+	Check          bool
+	HumanNumeric   bool
 }
 
+// sortCmd - функция, которую использует кобра при вызове команды sort.
 func sortCmd(cmd *cobra.Command, args []string) {
 	f := &flag{}
 
@@ -31,11 +38,25 @@ func sortCmd(cmd *cobra.Command, args []string) {
 	f.InputPath, _ = cmd.Flags().GetString("input")
 	f.OutputPath, _ = cmd.Flags().GetString("output")
 
+	f.Month, _ = cmd.Flags().GetBool("month")
+	f.IgnoreTrailing, _ = cmd.Flags().GetBool("ignore-trailing")
+	f.Check, _ = cmd.Flags().GetBool("check")
+	f.HumanNumeric, _ = cmd.Flags().GetBool("human-numeric")
+
 	var lines []string
 	if f.InputPath != "" {
 		lines = files.ReadLinesFromFile(f.InputPath)
 	} else {
 		lines = args
+	}
+
+	if f.Check {
+		if !isSorted(lines) {
+			fmt.Println("the lines are not sorted")
+		} else {
+			fmt.Println("the lines are sorted")
+		}
+		return
 	}
 
 	res := sortLines(lines, f)
@@ -49,14 +70,22 @@ func sortCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
+// sortLines - основная функция сортировки введенных/полученных строк.
 func sortLines(lines []string, f *flag) []string {
 	res := make([]string, len(lines))
 	copy(res, lines)
 
-	if f.Column == -1 && !f.Numeric && !f.Reverse && !f.Unique {
+	if f.Column == -1 && !f.Numeric && !f.Reverse && !f.Unique && !f.IgnoreTrailing && !f.Check && !f.Month &&
+		!f.HumanNumeric {
 		sort.Slice(res, func(i, j int) bool {
 			return res[i] < res[j]
 		})
+	}
+
+	if f.IgnoreTrailing {
+		for i := range res {
+			res[i] = strings.TrimRight(res[i], " ")
+		}
 	}
 
 	if f.Column > 0 || f.Numeric {
@@ -73,9 +102,21 @@ func sortLines(lines []string, f *flag) []string {
 		res = removeDuplicates(res)
 	}
 
+	if f.Month {
+		res = sortMonth(res)
+	}
+
+	if f.HumanNumeric {
+		sort.Slice(res, func(i, j int) bool {
+			return parseHumanSize(res[i]) < parseHumanSize(res[j])
+		})
+	}
+
 	return res
 }
 
+// sortColumnNumeric - вспомогательная функция для сортировки, в случае если пользователь ввел флаг колонки сортировки
+// и/или сортировки по цифрам.
 func sortColumnNumeric(lines []string, column int, numeric bool) []string {
 	res := make([]string, len(lines))
 	copy(res, lines)
@@ -116,6 +157,7 @@ func sortColumnNumeric(lines []string, column int, numeric bool) []string {
 	return res
 }
 
+// removeDuplicates - вспомогательная функция для сортировки, в случае если пользовал ввел флаг удаления дубликатов.
 func removeDuplicates(lines []string) []string {
 	m := make(map[string]struct{})
 	res := make([]string, 0, len(lines))
@@ -128,4 +170,88 @@ func removeDuplicates(lines []string) []string {
 	}
 
 	return res
+}
+
+// isSorted - вспомогательная функция, проверяющая отсортированы ли строки.
+func isSorted(lines []string) bool {
+	res := make([]string, len(lines))
+	copy(res, lines)
+	sort.Slice(res, func(i, j int) bool {
+		return res[i] < res[j]
+	})
+
+	for i := 0; i < len(res); i++ {
+		if lines[i] != res[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// sortMonth - вспомогательная функция для сортировки, в случае если пользователь ввел флаг сортировки по месяцам.
+func sortMonth(lines []string) []string {
+	res := make([]string, len(lines))
+	copy(res, lines)
+
+	sort.Slice(res, func(i, j int) bool {
+		monthOrder := map[string]int{
+			"jan": 1, "feb": 2, "mar": 3, "apr": 4,
+			"may": 5, "jun": 6, "jul": 7, "aug": 8,
+			"sep": 9, "oct": 10, "nov": 11, "dec": 12,
+		}
+
+		getMonthValue := func(s string) int {
+			fields := strings.Fields(s)
+			if len(fields) == 0 {
+				return 13
+			}
+			month := strings.ToLower(fields[0])
+			if val, ok := monthOrder[month]; ok {
+				return val
+			}
+			return 13
+		}
+
+		return getMonthValue(res[i]) < getMonthValue(res[j])
+	})
+
+	return res
+}
+
+// parseHumanSize - вспомогательная функция для сортировки, в случае если пользователь ввел флаг сортировки
+// по числовому значению с учетом суффиксов.
+func parseHumanSize(s string) float64 {
+	var suffixMultipliers = map[string]float64{
+		"":  1,
+		"K": 1e3,
+		"M": 1e6,
+		"G": 1e9,
+		"T": 1e12,
+		"P": 1e15,
+		"E": 1e18,
+	}
+
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0
+	}
+
+	s = strings.ToUpper(s)
+	last := s[len(s)-1]
+	numPart := s
+	multiplier := 1.0
+
+	if last >= 'A' && last <= 'Z' {
+		numPart = s[:len(s)-1]
+		if m, ok := suffixMultipliers[string(last)]; ok {
+			multiplier = m
+		}
+	}
+
+	num, err := strconv.ParseFloat(numPart, 64)
+	if err != nil {
+		return math.MaxFloat64
+	}
+
+	return num * multiplier
 }

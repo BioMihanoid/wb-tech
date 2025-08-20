@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -24,7 +23,6 @@ func NewConfig() *Config {
 
 	configPath := os.Getenv("CONFIG_PATH")
 	configName := os.Getenv("CONFIG_NAME")
-	fmt.Println(configPath, configName)
 	if configPath == "" || configName == "" {
 		log.Fatal("CONFIG_PATH or CONFIG_NAME environment variable not set")
 	}

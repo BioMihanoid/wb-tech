@@ -19,16 +19,16 @@ type ServiceInterface interface {
 }
 
 type Handler struct {
-	Service ServiceInterface
+	service ServiceInterface
 }
 
 const (
 	LayoutDate = "2006-01-02"
 )
 
-func (h *Handler) NewHandler(service ServiceInterface) *Handler {
+func NewHandler(service ServiceInterface) *Handler {
 	return &Handler{
-		Service: service,
+		service: service,
 	}
 }
 
@@ -38,7 +38,7 @@ func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e, err := h.Service.CreateEvent(userID, date, event)
+	e, err := h.service.CreateEvent(userID, date, event)
 	if err != nil {
 		http.Error(w, `{"error":"business error"}`, http.StatusServiceUnavailable)
 		return
@@ -59,7 +59,7 @@ func (h *Handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e, err := h.Service.UpdateEvent(userID, date, event)
+	e, err := h.service.UpdateEvent(userID, date, event)
 	if err != nil {
 		http.Error(w, `{"error":"business error"}`, http.StatusServiceUnavailable)
 		return
@@ -92,7 +92,7 @@ func (h *Handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Service.DeleteEvent(userID, id)
+	err = h.service.DeleteEvent(userID, id)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -108,7 +108,7 @@ func (h *Handler) EventsForDay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events, err := h.Service.EventsForDay(userID, date)
+	events, err := h.service.EventsForDay(userID, date)
 	if err != nil {
 		http.Error(w, `{"error":"internal error"}`, http.StatusInternalServerError)
 		return
@@ -129,7 +129,7 @@ func (h *Handler) EventsForWeek(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events, err := h.Service.EventsForWeek(userID, date)
+	events, err := h.service.EventsForWeek(userID, date)
 	if err != nil {
 		http.Error(w, `{"error":"internal error"}`, http.StatusInternalServerError)
 		return
@@ -150,7 +150,7 @@ func (h *Handler) EventsForMonth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events, err := h.Service.EventsForMonth(userID, date)
+	events, err := h.service.EventsForMonth(userID, date)
 	if err != nil {
 		http.Error(w, `{"error":"internal error"}`, http.StatusInternalServerError)
 		return

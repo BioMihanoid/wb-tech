@@ -11,7 +11,7 @@ import (
 
 type ServiceInterface interface {
 	CreateEvent(userID int64, date time.Time, text string) (model.Event, error)
-	UpdateEvent(userID int64, date time.Time, text string) (model.Event, error)
+	UpdateEvent(userID, id int64, date time.Time, text string) (model.Event, error)
 	DeleteEvent(userID, id int64) error
 	EventsForDay(userID int64, date time.Time) ([]model.Event, error)
 	EventsForWeek(userID int64, date time.Time) ([]model.Event, error)
@@ -59,7 +59,13 @@ func (h *Handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e, err := h.service.UpdateEvent(userID, date, event)
+	id, err := strconv.ParseInt(r.Form.Get("user_id"), 10, 64)
+	if err != nil {
+		http.Error(w, `{"error":"invalid id"}`, http.StatusBadRequest)
+		return
+	}
+
+	e, err := h.service.UpdateEvent(userID, id, date, event)
 	if err != nil {
 		http.Error(w, `{"error":"business error"}`, http.StatusServiceUnavailable)
 		return
